@@ -3,6 +3,7 @@ from visitext.models import ProcessedDocument, TextBlock, BoundingBox
 from visitext.preprocessor import ImagePreprocessor
 from visitext.filters import TextFilter
 from visitext.layout import LayoutReconstructor, TextLine
+from visitext.extractors import DocumentDataExtractor, ExtractedDocumentData
 
 __all__ = [
     "VisiTextEngine",
@@ -12,5 +13,7 @@ __all__ = [
     "ImagePreprocessor",
     "TextFilter",
     "LayoutReconstructor",
-    "TextLine"
+    "TextLine",
+    "DocumentDataExtractor",
+    "ExtractedDocumentData"
 ]

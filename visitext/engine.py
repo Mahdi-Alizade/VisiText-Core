@@ -11,6 +11,7 @@ from visitext.models import ProcessedDocument, TextBlock, BoundingBox
 from visitext.preprocessor import ImagePreprocessor
 from visitext.filters import TextFilter
 from visitext.layout import LayoutReconstructor
+from visitext.extractors import DocumentDataExtractor
 
 load_dotenv()
 
@@ -33,6 +34,7 @@ class VisiTextEngine:
         self.preprocessor = ImagePreprocessor()
         self.filter = TextFilter()
         self.layout_reconstructor = LayoutReconstructor(vertical_tolerance=12)
+        self.extractor = DocumentDataExtractor()
 
     def process(
         self,
@@ -87,12 +89,14 @@ class VisiTextEngine:
         raw_text = " ".join(raw_words)
         clean_text = self.filter.clean(raw_text)
         reconstructed_lines = self.layout_reconstructor.reconstruct_lines(blocks)
+        extracted_entities = self.extractor.extract(reconstructed_lines, clean_text)
         execution_time = round(time.time() - start_time, 4)
 
         return ProcessedDocument(
             raw_text=raw_text,
             clean_text=clean_text,
             lines=reconstructed_lines,
+            entities=extracted_entities.model_dump(),
             blocks=blocks,
             metadata={
                 "language": selected_lang,
