@@ -12,9 +12,13 @@ class TextFilter:
 
     @staticmethod
     def normalize_whitespace(text: str) -> str:
-        # Replaces consecutive spaces or mixed tabs with single spaces
+        # Replaces consecutive horizontal whitespace (spaces, tabs) with single space
         text = re.sub(r'[ \t]+', ' ', text)
-        return re.sub(r'\n\s*\n', '\n', text).strip()
+        # Removes trailing and leading spaces around newlines
+        text = re.sub(r' ?\n ?', '\n', text)
+        # Condenses multiple newlines into a single newline
+        text = re.sub(r'\n+', '\n', text)
+        return text.strip()
 
     @staticmethod
     def extract_patterns(text: str, pattern: str) -> List[str]:
