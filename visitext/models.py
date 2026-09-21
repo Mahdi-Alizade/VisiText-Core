@@ -20,5 +20,6 @@ class TextBlock(BaseModel):
 class ProcessedDocument(BaseModel):
     raw_text: str = Field(..., description="Full unprocessed aggregated text")
     clean_text: str = Field(..., description="Normalized and filtered text")
+    lines: List[str] = Field(default_factory=list, description="Spatially reconstructed reading lines")
     blocks: List[TextBlock] = Field(default_factory=list, description="Extracted blocks with coordinates")
     metadata: Dict[str, Any] = Field(default_factory=dict, description="Metadata including engine, params, execution time")

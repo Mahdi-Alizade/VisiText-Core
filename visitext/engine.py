@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from visitext.models import ProcessedDocument, TextBlock, BoundingBox
 from visitext.preprocessor import ImagePreprocessor
 from visitext.filters import TextFilter
+from visitext.layout import LayoutReconstructor
 
 load_dotenv()
 
@@ -31,6 +32,7 @@ class VisiTextEngine:
         self.confidence_threshold = confidence_threshold
         self.preprocessor = ImagePreprocessor()
         self.filter = TextFilter()
+        self.layout_reconstructor = LayoutReconstructor(vertical_tolerance=12)
 
     def process(
         self,
@@ -84,17 +86,20 @@ class VisiTextEngine:
 
         raw_text = " ".join(raw_words)
         clean_text = self.filter.clean(raw_text)
+        reconstructed_lines = self.layout_reconstructor.reconstruct_lines(blocks)
         execution_time = round(time.time() - start_time, 4)
 
         return ProcessedDocument(
             raw_text=raw_text,
             clean_text=clean_text,
+            lines=reconstructed_lines,
             blocks=blocks,
             metadata={
                 "language": selected_lang,
                 "confidence_threshold": self.confidence_threshold,
                 "preprocessing_applied": apply_preprocessing,
                 "execution_seconds": execution_time,
-                "total_blocks_found": len(blocks)
+                "total_blocks_found": len(blocks),
+                "total_lines_reconstructed": len(reconstructed_lines)
             }
         )
