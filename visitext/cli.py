@@ -6,6 +6,7 @@ from typing import List
 
 from visitext.engine import VisiTextEngine
 from visitext.visualizer import Visualizer
+from visitext.table_exporter import TableExporter
 
 
 SUPPORTED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".webp"}
@@ -43,9 +44,9 @@ def run_cli() -> None:
     )
     parser.add_argument(
         "-f", "--format",
-        choices=["json", "txt", "both"],
-        default="both",
-        help="Output format to save (default: both)."
+        choices=["json", "txt", "csv", "md", "all"],
+        default="all",
+        help="Output format to save (default: all)."
     )
     parser.add_argument(
         "-l", "--lang",
@@ -101,6 +102,7 @@ def run_cli() -> None:
         confidence_threshold=args.confidence
     )
     visualizer = Visualizer()
+    table_exporter = TableExporter()
 
     print(f"Starting extraction for {len(images)} image(s)...")
 
@@ -116,19 +118,32 @@ def run_cli() -> None:
             )
 
             base_name = img_path.stem
+            rows = table_exporter.parse_lines_to_rows(document.lines)
 
-            if args.format in ["txt", "both"]:
+            if args.format in ["txt", "all"]:
                 txt_path = output_directory / f"{base_name}.txt"
                 txt_path.write_text(document.clean_text, encoding="utf-8")
                 print(f"  -> Saved text: {txt_path}")
 
-            if args.format in ["json", "both"]:
+            if args.format in ["json", "all"]:
                 json_path = output_directory / f"{base_name}.json"
                 json_path.write_text(
                     document.model_dump_json(indent=2),
                     encoding="utf-8"
                 )
                 print(f"  -> Saved metadata: {json_path}")
+
+            if args.format in ["csv", "all"]:
+                csv_content = table_exporter.to_csv(rows)
+                csv_path = output_directory / f"{base_name}.csv"
+                csv_path.write_text(csv_content, encoding="utf-8")
+                print(f"  -> Saved CSV table: {csv_path}")
+
+            if args.format in ["md", "all"]:
+                md_content = table_exporter.to_markdown(rows)
+                md_path = output_directory / f"{base_name}.md"
+                md_path.write_text(md_content, encoding="utf-8")
+                print(f"  -> Saved Markdown table: {md_path}")
 
             if args.visualize:
                 annotated_path = output_directory / f"{base_name}_annotated.png"
