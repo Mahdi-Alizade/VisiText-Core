@@ -40,13 +40,19 @@ class VisiTextEngine:
         self,
         image_input: Union[str, Path, np.ndarray],
         lang: Optional[str] = None,
-        apply_preprocessing: bool = True
+        apply_preprocessing: bool = True,
+        use_clahe: bool = True,
+        clahe_clip_limit: float = 2.0
     ) -> ProcessedDocument:
         start_time = time.time()
         selected_lang = lang or self.default_lang
 
         if apply_preprocessing:
-            processed_img = self.preprocessor.process(image_input)
+            processed_img = self.preprocessor.process(
+                image_input,
+                clahe_enabled=use_clahe,
+                clahe_clip_limit=clahe_clip_limit
+            )
         else:
             processed_img = self.preprocessor.load_image(image_input)
 
@@ -102,6 +108,8 @@ class VisiTextEngine:
                 "language": selected_lang,
                 "confidence_threshold": self.confidence_threshold,
                 "preprocessing_applied": apply_preprocessing,
+                "clahe_enabled": use_clahe if apply_preprocessing else False,
+                "clahe_clip_limit": clahe_clip_limit if apply_preprocessing else None,
                 "execution_seconds": execution_time,
                 "total_blocks_found": len(blocks),
                 "total_lines_reconstructed": len(reconstructed_lines)
