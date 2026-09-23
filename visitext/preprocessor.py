@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 class ImagePreprocessor:
-    """Handles image enhancement, noise reduction, and binarization for OCR."""
+    """Handles image enhancement, noise reduction, contrast equalization, and binarization for OCR."""
 
     @staticmethod
     def load_image(image_input: Union[str, Path, np.ndarray]) -> np.ndarray:
@@ -29,6 +29,17 @@ class ImagePreprocessor:
     @staticmethod
     def remove_noise(image: np.ndarray, kernel_size: int = 3) -> np.ndarray:
         return cv2.medianBlur(image, kernel_size)
+
+    @staticmethod
+    def apply_clahe(
+        image: np.ndarray,
+        clip_limit: float = 2.0,
+        tile_grid_size: Tuple[int, int] = (8, 8)
+    ) -> np.ndarray:
+        """Applies Contrast Limited Adaptive Histogram Equalization to normalize uneven lighting."""
+        gray = ImagePreprocessor.to_grayscale(image)
+        clahe = cv2.createCLAHE(clipLimit=clip_limit, tileGridSize=tile_grid_size)
+        return clahe.apply(gray)
 
     @staticmethod
     def apply_adaptive_threshold(image: np.ndarray) -> np.ndarray:
@@ -70,13 +81,21 @@ class ImagePreprocessor:
         self,
         image_input: Union[str, Path, np.ndarray],
         deskew_enabled: bool = True,
-        denoise_enabled: bool = True
+        denoise_enabled: bool = True,
+        clahe_enabled: bool = True,
+        clahe_clip_limit: float = 2.0
     ) -> np.ndarray:
         image = self.load_image(image_input)
         if deskew_enabled:
             image = self.deskew(image)
-        gray = self.to_grayscale(image)
+        
+        if clahe_enabled:
+            gray = self.apply_clahe(image, clip_limit=clahe_clip_limit)
+        else:
+            gray = self.to_grayscale(image)
+
         if denoise_enabled:
             gray = self.remove_noise(gray)
+
         processed = self.apply_adaptive_threshold(gray)
         return processed
