@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Union, Tuple, List
+from typing import Union, Tuple, List, Optional
 import cv2
 import numpy as np
 
@@ -25,7 +25,7 @@ class Visualizer:
         self,
         image_input: Union[str, Path, np.ndarray],
         blocks: List[TextBlock],
-        output_path: Optional_Path = None,
+        output_path: Optional[Union[str, Path]] = None,
         draw_labels: bool = True
     ) -> np.ndarray:
         image = ImagePreprocessor.load_image(image_input)
@@ -82,6 +82,3 @@ class Visualizer:
             cv2.imwrite(str(out_file), annotated)
 
         return annotated
-
-
-Optional_Path = Union[str, Path, None]
