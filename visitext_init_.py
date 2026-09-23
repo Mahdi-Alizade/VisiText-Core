@@ -5,6 +5,7 @@ from visitext.filters import TextFilter
 from visitext.layout import LayoutReconstructor, TextLine
 from visitext.extractors import DocumentDataExtractor, ExtractedDocumentData
 from visitext.visualizer import Visualizer
+from visitext.table_exporter import TableExporter
 
 __all__ = [
     "VisiTextEngine",
@@ -17,5 +18,6 @@ __all__ = [
     "TextLine",
     "DocumentDataExtractor",
     "ExtractedDocumentData",
-    "Visualizer"
+    "Visualizer",
+    "TableExporter"
 ]
