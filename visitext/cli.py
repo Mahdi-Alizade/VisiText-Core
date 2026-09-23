@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import List
 
 from visitext.engine import VisiTextEngine
+from visitext.visualizer import Visualizer
 
 
 SUPPORTED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".webp"}
@@ -63,6 +64,11 @@ def run_cli() -> None:
         action="store_true",
         help="Disable OpenCV deskew and adaptive threshold binarization."
     )
+    parser.add_argument(
+        "-v", "--visualize",
+        action="store_true",
+        help="Generate and save an annotated image highlighting detected bounding boxes."
+    )
 
     args = parser.parse_args()
 
@@ -83,6 +89,7 @@ def run_cli() -> None:
         default_lang=args.lang,
         confidence_threshold=args.confidence
     )
+    visualizer = Visualizer()
 
     print(f"Starting extraction for {len(images)} image(s)...")
 
@@ -109,6 +116,15 @@ def run_cli() -> None:
                     encoding="utf-8"
                 )
                 print(f"  -> Saved metadata: {json_path}")
+
+            if args.visualize:
+                annotated_path = output_directory / f"{base_name}_annotated.png"
+                visualizer.draw_bboxes(
+                    image_input=img_path,
+                    blocks=document.blocks,
+                    output_path=annotated_path
+                )
+                print(f"  -> Saved visual overlay: {annotated_path}")
 
         except Exception as error:
             print(f"  -> Failed to process {img_path.name}: {error}", file=sys.stderr)
