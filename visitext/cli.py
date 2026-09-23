@@ -65,6 +65,17 @@ def run_cli() -> None:
         help="Disable OpenCV deskew and adaptive threshold binarization."
     )
     parser.add_argument(
+        "--no-clahe",
+        action="store_true",
+        help="Disable CLAHE adaptive contrast equalization during preprocessing."
+    )
+    parser.add_argument(
+        "--clahe-clip-limit",
+        type=float,
+        default=2.0,
+        help="Threshold for contrast limiting in CLAHE algorithm (default: 2.0)."
+    )
+    parser.add_argument(
         "-v", "--visualize",
         action="store_true",
         help="Generate and save an annotated image highlighting detected bounding boxes."
@@ -99,7 +110,9 @@ def run_cli() -> None:
             document = engine.process(
                 image_input=img_path,
                 lang=args.lang,
-                apply_preprocessing=not args.no_preprocess
+                apply_preprocessing=not args.no_preprocess,
+                use_clahe=not args.no_clahe,
+                clahe_clip_limit=args.clahe_clip_limit
             )
 
             base_name = img_path.stem
