@@ -47,6 +47,7 @@ token.json
 data/
 samples/
 outputs/
+sample_invoice.png
 *.log
 
 # Operating System files
