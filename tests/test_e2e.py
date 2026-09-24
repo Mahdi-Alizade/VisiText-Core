@@ -2,9 +2,9 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
+from PIL import Image, ImageDraw, ImageFont
 
-from generate_sample import create_sample_invoice
 from visitext.engine import VisiTextEngine
 from visitext.models import BoundingBox, TextBlock
 from visitext.table_exporter import TableExporter
@@ -14,6 +14,21 @@ from visitext.visualizer import Visualizer
 class TestVisiTextEndToEnd(unittest.TestCase):
     """End-to-End pipeline verification: image generation, processing, and multi-format exports."""
 
+    @staticmethod
+    def _create_mock_invoice_image(output_path: Path) -> None:
+        width, height = 800, 600
+        img = Image.new("RGB", (width, height), color=(255, 255, 255))
+        draw = ImageDraw.Draw(img)
+        font = ImageFont.load_default()
+
+        draw.rectangle([(20, 20), (780, 580)], outline=(180, 180, 180), width=2)
+        draw.text((40, 40), "VISITEXT TECHNOLOGIES INC.", fill=(0, 0, 0), font=font)
+        draw.text((40, 110), "Invoice: INV-2026-09", fill=(0, 0, 0), font=font)
+        draw.text((40, 130), "Date: 2026-09-21", fill=(0, 0, 0), font=font)
+        draw.text((40, 330), "Total: $1000.00", fill=(0, 0, 0), font=font)
+
+        img.save(str(output_path))
+
     def test_full_pipeline_mock_ocr_and_export(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
@@ -21,8 +36,8 @@ class TestVisiTextEndToEnd(unittest.TestCase):
             output_dir = temp_path / "outputs"
             output_dir.mkdir(parents=True, exist_ok=True)
 
-            # Step 1: Generate real synthetic invoice image via Pillow
-            create_sample_invoice(str(sample_img_path))
+            # Step 1: Generate real synthetic invoice image via internal helper
+            self._create_mock_invoice_image(sample_img_path)
             self.assertTrue(sample_img_path.exists(), "Sample invoice image must be generated on disk.")
 
             # Step 2: Initialize Core Engine & Modules
@@ -30,7 +45,7 @@ class TestVisiTextEndToEnd(unittest.TestCase):
             visualizer = Visualizer()
             table_exporter = TableExporter()
 
-            # Mock pytesseract raw dictionary to make test fully portable across machines without local Tesseract binary
+            # Mock pytesseract payload to make test fully portable across environments
             mock_ocr_payload = {
                 "text": ["", "Invoice:", "INV-2026-09", "Total:", "$1000.00", ""],
                 "conf": ["-1", "95.0", "92.0", "88.0", "96.0", "-1"],
